@@ -1,0 +1,81 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%labels
+    Author Seed-VC Team
+    Description Zero-shot voice conversion with in-context learning
+
+%environment
+    export PYTHONPATH=/app:$PYTHONPATH
+    export HF_HOME=/app/pretrained_weights/hf_cache
+
+%post
+    # Basic packages only (CUDA/FFmpeg via module load on cluster)
+    apt-get update && apt-get install -y --no-install-recommends \
+        python3.10 python3-pip python3.10-venv \
+        libsndfile1 libgl1-mesa-glx libglib2.0-0 \
+        git \
+        && rm -rf /var/lib/apt/lists/*
+    
+    # Create app directory
+    mkdir -p /app
+    cd /app
+    
+    # Upgrade pip
+    python3 -m pip install --upgrade pip
+    
+    # PyTorch (cluster provides CUDA via module load)
+    pip3 install torch==2.2.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu121
+    
+    # Core dependencies
+    pip3 install \
+        numpy>=1.24.0 \
+        scipy>=1.10.0 \
+        librosa>=0.10.0 \
+        soundfile>=0.12.0 \
+        einops>=0.7.0 \
+        tqdm>=4.65.0 \
+        transformers>=4.35.0 \
+        huggingface-hub>=0.20.0 \
+        hydra-core>=1.3.0 \
+        omegaconf>=2.3.0 \
+        pyyaml>=6.0 \
+        munch>=4.0.0
+    
+    # Cleanup
+    pip3 cache purge
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%files
+    src /app/src
+    configs /app/configs
+    seed_vc_api.py /app/seed_vc_api.py
+
+%runscript
+    cd /app
+    exec python3 seed_vc_api.py "$@"
+
+%help
+    Seed-VC Voice Conversion
+    
+    Before running on cluster:
+        module load CUDA/12.2.0
+        module load FFmpeg
+    
+    Build:
+        apptainer build seed_vc.sif seed_vc.def
+    
+    Run:
+        apptainer run --nv \
+            --bind /path/to/weights:/app/pretrained_weights \
+            --bind /path/to/data:/data \
+            seed_vc.sif \
+            --source /data/source.wav \
+            --reference /data/reference.wav \
+            --output /data/output.wav
+    
+    Python API:
+        from seed_vc_api import VoiceConverter
+        converter = VoiceConverter()
+        converter.convert("source.wav", "reference.wav", "output.wav")
