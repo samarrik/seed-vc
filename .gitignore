@@ -1,28 +1,47 @@
-# general things to ignore
-.DS_Store
-build/
-build_contrib/
-dist/
-.cache/
-*.egg-info/
-*.egg
-*.py[cod]
+# Python
 __pycache__/
+*.py[cod]
+*$py.class
 *.so
-*~
+.Python
+venv/
+env/
+.venv/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
 
-# misc
+# Weights (user downloads)
+pretrained_weights/
 checkpoints/
-test_waves/
-reconstructed/
-.python-version
-ruff.log
-/configs/inuse/
-runs/
-/garbages/
-/flagged/
-/experimental/
+*.pth
+*.onnx
+*.pt
+*.bin
+*.safetensors
+
+# HuggingFace cache
+hf_cache/
+
+# Data
+data/
+datasets/
+
+# Output
+output/
+results/
+*.wav
+*.mp3
+*.flac
+
+# Apptainer
+*.sif
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
